@@ -6,11 +6,32 @@ from google.oauth2.credentials import Credentials
 import os
 from datetime import datetime
 
-A = ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 1]
+A = ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189]
 l = [A, A, A, A]
 
 
-def append_values(spreadsheet_id, range_name, value_input_option, values):
+def formatRanks(ranks):
+    result = [
+        ranks[0],
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        *ranks[1:],
+    ]
+    return result
+
+
+def uploadRanks(spreadsheet_id, range_name, value_input_option, values):
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
     credentials = None
     if os.path.exists("token.json"):
@@ -28,17 +49,21 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
     try:
         service = build("sheets", "v4", credentials=credentials)
 
-        # Splitting values list into two parts: first cell in Column A and rest from Column O
-        value_cell_A = [values[i][:1] for i in range(len(values))]
-        value_rest_O = [values[i][1:] for i in range(len(values))]
+        # Retrieve existing data to calculate the range
+        result = (
+            service.spreadsheets()
+            .values()
+            .get(spreadsheetId=spreadsheet_id, range=range_name, majorDimension="ROWS")
+            .execute()
+        )
 
-        # Define ranges for appending data
-        range_start = 4
-        range_end = range_start + len(values[0])
+        existing_data = result.get("values", [])
+        num_existing_rows = len(existing_data)
+
+        # Calculate the new range based on the number of existing rows
+        range_start = 23
+        range_end = range_start + len(values)
         range_name_A = f"{range_name}!A{range_start}"
-        range_name_O = f"{range_name}!O{range_start}:V{range_end}"
-
-      
 
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -56,6 +81,7 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
                         [f"Ranks for the desired products at {current_datetime}"]
                     ]
                 },
+                insertDataOption="INSERT_ROWS",
             )
             .execute()
         )
@@ -64,7 +90,8 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
             f"{result_datetime.get('updates').get('updatedCells')} cells appended with current date and time."
         )
 
-        # Append the first cell value to Column A
+        value_cell_A = [formatRanks(i) for i in values]
+
         result_A = (
             service.spreadsheets()
             .values()
@@ -73,6 +100,7 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
                 range=range_name_A,
                 valueInputOption=value_input_option,
                 body={"values": value_cell_A},
+                insertDataOption="INSERT_ROWS",
             )
             .execute()
         )
@@ -80,31 +108,15 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
             f"{result_A.get('updates').get('updatedCells')} cells appended to Column A."
         )
 
-        # Append the rest of the values to Column O
-        result_O = (
-            service.spreadsheets()
-            .values()
-            .append(
-                spreadsheetId=spreadsheet_id,
-                range=range_name_O,
-                valueInputOption=value_input_option,
-                body={"values": value_rest_O},
-            )
-            .execute()
-        )
-        print(
-            f"{result_O.get('updates').get('updatedCells')} cells appended to Column O."
-        )
-
-        # Highlight the entire row
-        format_request = {
+        # Highlight the entire row for the date-time entry
+        format_request_datetime_row = {
             "repeatCell": {
                 "range": {
                     "sheetId": 0,
                     "startRowIndex": range_start - 1,
                     "endRowIndex": range_start,
                     "startColumnIndex": 0,
-                    "endColumnIndex": 0,
+                    "endColumnIndex": len(formatRanks(A)),  # Adjust column end index
                 },
                 "cell": {
                     "userEnteredFormat": {
@@ -119,19 +131,19 @@ def append_values(spreadsheet_id, range_name, value_input_option, values):
             }
         }
         service.spreadsheets().batchUpdate(
-            spreadsheetId=spreadsheet_id, body={"requests": [format_request]}
+            spreadsheetId=spreadsheet_id,
+            body={"requests": [format_request_datetime_row]},
         ).execute()
 
-        return result_A, result_O
-
+        return result_A
     except HttpError as error:
         print(f"An error occurred: {error}")
         return error
 
 
-append_values(
+uploadRanks(
     "1R5odbc5fOhQ3hoNBIj2WmFRk4502DCncw9FBA8BuiLs",
-    "Sheet1",
+    "product y",
     "USER_ENTERED",
     l,
 )
