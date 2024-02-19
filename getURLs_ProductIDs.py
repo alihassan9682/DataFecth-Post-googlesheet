@@ -47,8 +47,11 @@ def get_URLs_ProductIDs(spreadsheet_ids):
         return error
 
 
-URLs, ProductIDs = get_URLs_ProductIDs("1ONJjNMj4TPJJdNsphrpXP_HSD2flZXAsr05jDxE-PHc")
 
-print("URLs", URLs)
 
-print("ProductIDs", ProductIDs)
+
+# URLs, ProductIDs = get_URLs_ProductIDs("1ONJjNMj4TPJJdNsphrpXP_HSD2flZXAsr05jDxE-PHc")
+
+# print("URLs", URLs)
+
+# print("ProductIDs", ProductIDs)

@@ -6,9 +6,6 @@ from google.oauth2.credentials import Credentials
 import os
 from datetime import datetime
 
-A = ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189]
-l = [A, A, A, A]
-
 
 def formatRanks(ranks):
     result = [
@@ -141,9 +138,17 @@ def uploadRanks(spreadsheet_id, range_name, value_input_option, values):
         return error
 
 
-uploadRanks(
-    "1R5odbc5fOhQ3hoNBIj2WmFRk4502DCncw9FBA8BuiLs",
-    "product y",
-    "USER_ENTERED",
-    l,
-)
+
+# values = [
+#     ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189],
+#     ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189],
+#     ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189],
+#     ["https://www.emag.ro/search/?ref=effective_search", 2, 5, 1, 6, 8, 189],
+# ]
+
+# uploadRanks(
+#     "1R5odbc5fOhQ3hoNBIj2WmFRk4502DCncw9FBA8BuiLs",
+#     "product y",
+#     "USER_ENTERED",
+#     values,
+# )
